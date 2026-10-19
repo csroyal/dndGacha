@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Gacha Simulation</title>
+  <style>
+    body { background: #0b0818; color: #e8e4ff; font: 14px/1.5 Consolas, monospace; padding: 1.5rem; }
+    .pass { color: #7dffb0; } .fail { color: #ff7a90; }
+  </style>
+</head>
+<body>
+  <h1>Gacha simulation</h1>
+  <p>Runs the real pull logic from <code>js/gacha.js</code> with the config in <code>js/items.js</code> and checks the rules hold.</p>
+  <pre id="out">Running…</pre>
+  <script src="../js/items.js"></script>
+  <script src="../js/gacha.js"></script>
+  <script>
+    const N = 300000;
+    const lines = [];
+    const check = (ok, msg) => lines.push(`<span class="${ok ? "pass" : "fail"}">${ok ? "PASS" : "FAIL"}</span>  ${msg}`);
+    const pct = (a, b) => (b ? (100 * a / b).toFixed(2) : "0") + "%";
+
+    let s = { pity: 0, guaranteed: false };
+    const normal = { C: 0, R: 0, SR: 0, SSR: 0 }, pity = { SR: 0, SSR: 0, other: 0 };
+    let normalN = 0, pityN = 0, pityOnSchedule = true, contestedOffPity = 0;
+    let won = 0, lost = 0, guar = 0, guarAfterLost = 0, lostThenNotGuar = 0, guarWithoutLoss = 0;
+    let lastContested = null, pityLimited = 0;
+
+    const resetsOn = GACHA_CONFIG.pityResetsOn || [];
+    let sinceReset = 0, earlyResets = 0;
+    for (let i = 1; i <= N; i++) {
+      const r = Gacha.pull(s);
+      const shouldBePity = sinceReset + 1 >= GACHA_CONFIG.pityEvery;
+      if (r.isPity !== shouldBePity) pityOnSchedule = false;
+      if (!r.isPity && resetsOn.includes(r.rarity)) earlyResets++;
+      sinceReset = r.isPity || resetsOn.includes(r.rarity) ? 0 : sinceReset + 1;
+      if (r.state.pity !== sinceReset) pityOnSchedule = false;
+      if (r.isPity) {
+        pityN++;
+        if (r.rarity in pity) pity[r.rarity]++; else pity.other++;
+        if (r.limited) pityLimited++;
+      } else {
+        normalN++; normal[r.rarity]++;
+      }
+      if (r.outcome) {
+        if (!r.isPity && !GACHA_CONFIG.fiftyFiftyOnEveryHighPull) contestedOffPity++;
+        if (r.outcome === "won") won++;
+        if (r.outcome === "lost") lost++;
+        if (r.outcome === "guaranteed") {
+          guar++;
+          if (lastContested === "lost") guarAfterLost++; else guarWithoutLoss++;
+        } else if (lastContested === "lost") lostThenNotGuar++;
+        lastContested = r.outcome;
+      }
+      s = r.state;
+    }
+
+    lines.push(`Simulated ${N.toLocaleString()} pulls · active banner: ${ACTIVE_LIMITED_BANNER}\n`);
+    lines.push(`Normal pulls (${normalN}):  C ${pct(normal.C, normalN)}  R ${pct(normal.R, normalN)}  SR ${pct(normal.SR, normalN)}  SSR ${pct(normal.SSR, normalN)}`);
+    lines.push(`Pity pulls   (${pityN}):  SR ${pct(pity.SR, pityN)}  SSR ${pct(pity.SSR, pityN)}  limited ${pct(pityLimited, pityN)}`);
+    lines.push(`50/50: won ${won}, lost ${lost}, guaranteed ${guar}  → win rate when not guaranteed ${pct(won, won + lost)}\n`);
+
+    const near = (a, b, tol) => Math.abs(a - b) <= tol;
+    const R = GACHA_CONFIG.rates, tot = R.C + R.R + R.SR + R.SSR;
+    for (const k of ["C", "R", "SR", "SSR"]) {
+      check(near(normal[k] / normalN, R[k] / tot, 0.006), `normal ${k} rate ≈ ${pct(R[k], tot)} (got ${pct(normal[k], normalN)})`);
+    }
+    check(pity.other === 0, "every pity pull is SR or SSR");
+    check(near(pity.SR / pityN, 2 / 3, 0.01) && near(pity.SSR / pityN, 1 / 3, 0.01), "pity split ≈ 2/3 SR, 1/3 SSR");
+    check(pityOnSchedule, `pity lands every ${GACHA_CONFIG.pityEvery} pulls, resetting early on ${resetsOn.join("/") || "nothing"} (${earlyResets} early resets)`);
+
+    // Admin-forced rarity
+    const due = GACHA_CONFIG.pityEvery - 1;
+    const fC = Gacha.pull({ pity: due, guaranteed: false }, Math.random, "C");
+    check(fC.rarity === "C" && !fC.isPity && fC.state.pity === due, "forcing C when pity is due gives a C and keeps the pity owed");
+    const fSSR = Gacha.pull({ pity: 0, guaranteed: false }, Math.random, "SSR");
+    check(fSSR.rarity === "SSR" && fSSR.state.pity === (resetsOn.includes("SSR") ? 0 : 1), "forcing SSR early gives an SSR and follows the reset rule");
+    const fSR = Gacha.pull({ pity: due, guaranteed: true }, Math.random, "SR");
+    check(fSR.rarity === "SR" && fSR.isPity && fSR.limited && fSR.state.pity === 0 && !fSR.state.guaranteed, "forcing SR on a pity pull still uses the guarantee");
+
+    // Admin-forced specific item
+    const pullable = i => i.pullable !== false;
+    const banner = Gacha.activeBanner();
+    const limSR = banner && banner.items.find(i => i.rarity === "SR" && pullable(i));
+    const stdSR = STANDARD_ITEMS.find(i => i.rarity === "SR" && pullable(i));
+    const stdC = STANDARD_ITEMS.find(i => i.rarity === "C" && pullable(i));
+    const fC2 = Gacha.pull({ pity: due, guaranteed: false }, Math.random, null, stdC.id);
+    check(fC2.item.id === stdC.id && !fC2.isPity && fC2.state.pity === due, `forcing ${stdC.name} gives exactly that item and keeps a due pity owed`);
+    const fLost = Gacha.pull({ pity: due, guaranteed: false }, Math.random, null, stdSR.id);
+    check(fLost.item.id === stdSR.id && fLost.outcome === "lost" && fLost.state.guaranteed, `forcing standard ${stdSR.name} on pity counts as a lost 50/50`);
+    const kept = Gacha.pull({ pity: due, guaranteed: true }, Math.random, null, stdSR.id);
+    check(kept.item.id === stdSR.id && kept.outcome === null && kept.state.guaranteed, "forcing a standard item while guaranteed keeps the guarantee owed");
+    if (limSR) {
+      const fWon = Gacha.pull({ pity: due, guaranteed: false }, Math.random, null, limSR.id);
+      check(fWon.item.id === limSR.id && fWon.outcome === "won" && fWon.limited && !fWon.state.guaranteed, `forcing limited ${limSR.name} on pity counts as a won 50/50`);
+    }
+    check(contestedOffPity === 0, "50/50 only happens on pity pulls");
+    check(near(won / (won + lost), GACHA_CONFIG.limitedChance, 0.01), "un-guaranteed 50/50 is ≈ 50%");
+    check(lostThenNotGuar === 0 && guarAfterLost === lost - (lastContested === "lost" ? 1 : 0), "every lost 50/50 is followed by a guaranteed limited");
+    check(guarWithoutLoss === 0, "guarantee only ever comes after a loss (winning doesn't grant one)");
+
+    document.getElementById("out").innerHTML = lines.join("\n");
+    document.title = lines.some(l => l.includes("FAIL")) ? "FAIL" : "PASS";
+  </script>
+</body>
+</html>

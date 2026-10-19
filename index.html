@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Luvi's Multiverse Armory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="stars" aria-hidden="true"></canvas>
+  <div class="nebula" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">Luvi's Multiverse Armory</div>
+    <nav class="tabs">
+      <button class="tab active" data-view="summon">Summon</button>
+      <button class="tab" data-view="inventory">Inventory <span id="invCount" class="count"></span></button>
+      <button class="tab" data-view="history">History</button>
+    </nav>
+    <div class="top-actions">
+      <button id="btnRules" class="btn">Rates &amp; pool</button>
+      <button id="btnMute" class="btn btn-icon" title="Sound"></button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ SUMMON ============ -->
+    <section id="view-summon" class="view active">
+      <div id="bannerCard" class="panel banner-card"></div>
+
+      <div class="altar" id="altar">
+        <div class="portal"><canvas id="altarPortal"></canvas></div>
+      </div>
+
+      <div class="panel status-bar">
+        <div class="stat">
+          <span class="label">Turn</span>
+          <span id="turnNum" class="value">0</span>
+        </div>
+        <div class="stat">
+          <span class="label">Pity</span>
+          <div id="pityPips" class="pips"></div>
+          <span id="pityText" class="sub"></span>
+        </div>
+        <div class="stat">
+          <span class="label">Next pity pull</span>
+          <span id="fiftyText" class="value small"></span>
+          <span id="fiftySub" class="sub"></span>
+        </div>
+      </div>
+
+      <button id="btnPull" class="pull-btn">Open the Portal</button>
+      <div class="sub-actions">
+        <button id="btnExtra" class="link-btn" title="Pull without advancing the turn">Extra pull (same turn)</button>
+        <button id="btnPass" class="link-btn" title="Advance the turn without pulling">Pass turn</button>
+        <button id="btnEnd" class="link-btn" title="Reset the turn counter and drop temporary items">End encounter</button>
+        <button id="btnUndo" class="link-btn" title="Undo the most recent pull or pass">Undo</button>
+      </div>
+
+      <div class="loadout">
+        <h3 class="section-title">In hand</h3>
+        <div id="loadoutGrid" class="card-grid small"></div>
+      </div>
+    </section>
+
+    <!-- ============ INVENTORY ============ -->
+    <section id="view-inventory" class="view">
+      <div class="view-head">
+        <h2>Inventory</h2>
+        <p class="muted">Single-turn items expire when the next turn starts. Use − and + to adjust turns,
+          ∞ to keep an item for the rest of the encounter. Ending the encounter clears everything.</p>
+      </div>
+      <div id="invGrid" class="card-grid"></div>
+    </section>
+
+    <!-- ============ HISTORY ============ -->
+    <section id="view-history" class="view">
+      <div class="view-head">
+        <h2>History</h2>
+      </div>
+      <div id="histSummary" class="hist-summary"></div>
+      <div id="histFilters" class="filters"></div>
+      <div id="histList" class="hist-list"></div>
+    </section>
+  </main>
+
+  <!-- ============ PULL OVERLAY ============ -->
+  <div id="pullOverlay" class="overlay" data-phase="idle" aria-hidden="true">
+    <div class="ov-particles" id="ovParticles"></div>
+    <div class="ov-portal-wrap">
+      <div class="ov-tremble">
+        <div class="portal"><canvas id="overlayPortal"></canvas></div>
+      </div>
+    </div>
+    <div class="ov-faller" id="ovFaller"></div>
+    <div class="ov-shock"></div>
+    <div class="ov-flash"></div>
+
+    <div class="reveal">
+      <div class="reveal-bg"></div>
+      <div class="reveal-rays"></div>
+      <div class="reveal-sparkles" id="revealSparkles"></div>
+      <div class="reveal-art" id="revealArt"></div>
+      <div class="reveal-info item-info" id="revealInfo"></div>
+      <div class="reveal-hint">Click to continue</div>
+    </div>
+    <button class="skip-btn" id="btnSkip">Skip</button>
+  </div>
+
+  <!-- ============ MODAL ============ -->
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true">
+      <button class="modal-close modal-back" id="modalBack" title="Back" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="modal-close" id="modalClose" title="Close">✕</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="js/items.js"></script>
+  <script src="js/gacha.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
