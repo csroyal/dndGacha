@@ -128,6 +128,11 @@ const Gacha = (() => {
     }
     for (const { item } of allItems()) {
       if (item.upgradesTo && !seen.has(item.upgradesTo)) problems.push(`"${item.id}" upgrades to "${item.upgradesTo}", which doesn't exist.`);
+      if (typeof item.sound === "string" && item.sound.endsWith("/")) {
+        const folder = item.sound.replace(/\/+$/, "").split("/").pop();
+        const clips = typeof SOUND_FOLDERS === "object" ? SOUND_FOLDERS[folder] : null;
+        if (!clips || !clips.length) problems.push(`"${item.id}" plays sound folder "${folder}", but js/sounds.js has no clips listed for it.`);
+      }
     }
     if (ACTIVE_LIMITED_BANNER && !LIMITED_BANNERS[ACTIVE_LIMITED_BANNER]) {
       problems.push(`ACTIVE_LIMITED_BANNER "${ACTIVE_LIMITED_BANNER}" doesn't exist.`);

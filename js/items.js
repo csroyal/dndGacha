@@ -89,11 +89,16 @@ const SPELL_GLOSSARY = {
      description: "What it does in play. Use \n for a line break.",
      flavor:      "Italic flavor text shown under the description.",
      sound:       "sounds/master-sword.mp3",   // optional: plays on reveal along with the
-                                               // built-in sound (any rarity; mp3/ogg/wav)
+                                               // built-in sound (any rarity; mp3/ogg/wav).
+                                               // A folder like "sounds/jarona/" plays a random
+                                               // clip from it; list its clips in js/sounds.js.
      soundVolume: 0.8,                         // optional: 0 to 1 (default 1) for that sound.
                                                // Browsers can't play a file louder than it is,
                                                // so a sound that's too quiet at 1 needs a
-                                               // louder copy of the file.
+                                               // louder copy of the file. For a folder, this
+                                               // multiplies each clip's volume in js/sounds.js
+                                               // and can go above 1 (e.g. 2 = twice as loud),
+                                               // up to each clip's full volume.
    }
 
    Every field except id, name and rarity is optional.
@@ -195,64 +200,73 @@ const STANDARD_ITEMS = [
   // R = a C-level weapon (Player's Handbook damage dice, no flat bonuses) plus one
   // enhanced effect. Save DCs use the usual formula: 8 + proficiency bonus (PB) + modifier.
   {
-    id: "sting", name: "Sting", rarity: "R", type: "Weapon", origin: "The Lord of the Rings",
-    image: "images/items/sting.png", icon: "🗡️", duration: 1,
-    stats: { Damage: "1d6+1 piercing", Range: "Melee", Properties: "Finesse, Light" },
-    description: "When a creature within your reach targets you with an attack or spell, you can use your reaction to make an opportunity attack against that creature with this weapon.",
-    flavor: "An elven blade, small enough for a hobbit.",
-  },
-  {
-    id: "captain-shield", name: "Captain's Shield", rarity: "R", type: "Shield", origin: "Captain America",
-    image: "images/items/captain-shield.png", icon: "🛡️", duration: 1,
-    stats: { AC: "+2", "Unarmed Strike": "1d4 bludgeoning", Save: "Constitution, DC 8 + PB + STR" },
-    description: "Your unarmed strikes deal 1d4 bludgeoning damage. When you hit a creature with an unarmed strike, it must succeed on a Constitution saving throw or have the Stunned condition until the start of your next turn.",
-    flavor: "I can do this all day.",
-  },
-  {
-    id: "lightsaber", name: "Lightsaber", rarity: "R", type: "Weapon", origin: "Star Wars",
-    image: "images/items/lightsaber.png", icon: "✨", duration: 1,
-    stats: { Damage: "1d8 radiant", Range: "Melee", Properties: "Finesse" },
-    description: "Your attacks with this weapon automatically hit. Roll anyway, since a 20 is still a critical hit.\nWhen you attack with this weapon, you can also choose one creature you can see within 30 feet of you and push it up to 30 feet away from you or pull it up to 30 feet toward you.",
-    flavor: "An elegant weapon for a more civilized age.",
+    id: "b-dasher", name: "B-Dasher", rarity: "R", type: "Wondrous Item", origin: "Mario Kart",
+    image: "images/items/b-dasher.png", icon: "🏎️", duration: 1,
+    sound: "sounds/b-dasher.mp3", soundVolume: 0.15,
+    stats: { Speed: "+30 ft", Shield: "Absorbs 1 hit" },
+    description: "While you ride this kart, your speed increases by 30 feet. The first time you would take damage before the start of your next turn, the kart takes it instead, and you take none.",
+    flavor: "I'm Using Tilt Controls!",
   },
   {
     id: "ragnell", name: "Ragnell", rarity: "R", type: "Weapon", origin: "Fire Emblem",
     image: "images/items/ragnell.png", icon: "✨", duration: 1,
+    sound: "sounds/ragnell/",
     stats: { Damage: "2d6 slashing", Range: "Melee", Properties: "Heavy, Two-handed" },
     description: "You may choose to hold your action for this turn. If you do and are attacked during the next enemy phase, you can use your reaction to make one attack against that creature with this weapon. On a hit, the attack deals double damage.",
     flavor: "I fight for my friends.",
   },
   {
-    id: "batarang", name: "Batarang", rarity: "R", type: "Weapon", origin: "Batman",
-    image: "images/items/batarang.png", icon: "🦇", duration: 1,
-    stats: { Damage: "1d4 slashing", Range: "Thrown 30/90 ft", Properties: "Finesse, Thrown" },
-    description: "When you throw this weapon, you can target a willing ally instead of an enemy. You don't make an attack roll, and the ally takes no damage. Instead, you move the ally up to 30 feet in a direction you choose.",
-    flavor: "You either die a hero or live long enough to see yourself become the villain.",
-  },
-  {
     id: "big-earner", name: "Big Earner", rarity: "R", type: "Weapon", origin: "Team Fortress 2",
     image: "images/items/big-earner.png", icon: "🦇", duration: 1,
+    sound: "sounds/big-earner.mp3", soundVolume: 0.1,
     stats: { Damage: "1d4 piercing", Range: "Melee / Thrown 20/60 ft", Properties: "Finesse, Light, Thrown" },
     description: "Backstab. When you hit a creature that couldn't see you with this weapon, for example because you were hidden or invisible, your speed increases by 100 feet until the end of your turn.",
-    flavor: "Well, off to visit your mother!",
-  },
-  {
-    id: "spookysword", name: "Spookysword", rarity: "R", type: "Weapon", origin: "Deltarune",
-    image: "images/items/spookysword.png", icon: "🗡️", duration: 1,
-    stats: { Damage: "1d6 slashing", Range: "Melee", Properties: "Finesse, Light", Save: "Constitution, DC 8 + PB + STR or DEX" },
-    description: "When you hit a creature with this weapon, it must succeed on a Constitution saving throw or have the Blinded condition until the start of your next turn.",
-    flavor: "(It's kinda cool...)",
+    flavor: "Now I know ya lookin' at this switch and ya think ya just gettin' gipped for something dinky and broken. Well, you'd be right.",
   },
   {
     id: "peacekeeper", name: "Peacekeeper", rarity: "R", type: "Weapon", origin: "Overwatch",
     image: "images/items/peacekeeper.png", icon: "", duration: 1,
+    sound: "sounds/peacekeeper.ogg", soundVolume: 0.64,
     stats: { Damage: "1d8 piercing", Range: "40/120 ft", Properties: "Ammunition, Reload (6 shots), Sap" },
     description: "Fan the Hammer. As an action, you can make six ranged attacks with this weapon against one or more targets. Don't add your ability modifier or proficiency bonus to these attack rolls, and don't add your ability modifier to their damage.",
     flavor: "It's high noon...",
   },
   {
+    id: "spookysword", name: "Spookysword", rarity: "R", type: "Weapon", origin: "Deltarune",
+    image: "images/items/spookysword.png", icon: "🗡️", duration: 1,
+    sound: "sounds/spookysword/",
+    stats: { Damage: "1d6 slashing", Range: "Melee", Properties: "Finesse, Light", Save: "Constitution, DC 8 + PB + STR or DEX" },
+    description: "When you hit a creature with this weapon, it must succeed on a Constitution saving throw or have the Blinded condition until the start of your next turn.",
+    flavor: "(It's kinda cool...)",
+  },
+  {
+    id: "sting", name: "Sting", rarity: "R", type: "Weapon", origin: "The Lord of the Rings",
+    image: "images/items/sting.png", icon: "🗡️", duration: 1,
+    sound: "sounds/sting.mp3", soundVolume: 0.1,
+    stats: { Damage: "1d6+1 piercing", Range: "Melee", Properties: "Finesse, Light" },
+    description: "When a creature within your reach targets you with an attack or spell, you can use your reaction to make an opportunity attack against that creature with this weapon.",
+    flavor: "An elven blade, small enough for a hobbit.",
+  },
+  {
+    id: "batarang", name: "Batarang", rarity: "R", type: "Weapon", origin: "Batman",
+    image: "images/items/batarang.png", icon: "🦇", duration: 1,
+    sound: "sounds/batarang.mp3", soundVolume: 0.15,
+    stats: { Damage: "1d4 slashing", Range: "Thrown 30/90 ft", Properties: "Finesse, Thrown" },
+    description: "When you throw this weapon, you can target a willing ally instead of an enemy. You don't make an attack roll, and the ally takes no damage. Instead, you move the ally up to 30 feet in a direction you choose.",
+    flavor: "You either die a hero or live long enough to see yourself become the villain.",
+  },
+  {
+    id: "captain-shield", name: "Captain's Shield", rarity: "R", type: "Shield", origin: "Captain America",
+    image: "images/items/captain-shield.png", icon: "🛡️", duration: 1,
+    sound: "sounds/captain-shield.ogg", soundVolume: 0.6,
+    stats: { AC: "+2", "Unarmed Strike": "1d4 bludgeoning", Save: "Constitution, DC 8 + PB + STR" },
+    description: "Your unarmed strikes deal 1d4 bludgeoning damage. When you hit a creature with an unarmed strike, it must succeed on a Constitution saving throw or have the Stunned condition until the start of your next turn.",
+    flavor: "I can do this all day.",
+  },
+  {
     id: "repulsor", name: "Repulsor", rarity: "R", type: "Weapon", origin: "Iron Man",
     image: "images/items/repulsor.png", icon: "✋", duration: 1,
+    sound: "sounds/repulsor.mp3", soundVolume: 0.4,
     stats: { Damage: "1d8 force", Range: "150/600 ft", Area: "100-ft cone (blast)", Save: "Dexterity, DC 8 + PB + DEX" },
     description: "You can make ranged attacks with this gauntlet as if it were a longbow, dealing force damage.\nBlast. As an action, you can fire a 100-foot cone instead. Each creature in the cone makes a Dexterity saving throw, taking 1d8 + your Dexterity modifier force damage on a failed save, or half as much on a successful one.",
     flavor: "I... am... Iron Man...",
@@ -260,62 +274,46 @@ const STANDARD_ITEMS = [
   {
     id: "hulk-fist", name: "Hulk Fist", rarity: "R", type: "Weapon", origin: "The Incredible Hulk",
     image: "images/items/hulk-fist.png", icon: "👊", duration: 1,
+    sound: "sounds/hulk-fist.ogg", soundVolume: 0.38,
     stats: { Damage: "2d6 bludgeoning", Range: "Melee", Area: "20-ft radius (slam)", Save: "Dexterity, DC 8 + PB + STR" },
     description: "Slam. As an action, you can smash the ground. Each creature of your choice within 20 feet of you makes a Dexterity saving throw, taking 2d6 + your Strength modifier bludgeoning damage on a failed save, or half as much on a successful one.",
     flavor: "HULK SMASH!!!",
   },
   {
-    id: "b-dasher", name: "B-Dasher", rarity: "R", type: "Wondrous Item", origin: "Mario Kart",
-    image: "images/items/b-dasher.png", icon: "🏎️", duration: 1,
-    stats: { Speed: "+30 ft", Shield: "Absorbs 1 hit" },
-    description: "While you ride this kart, your speed increases by 30 feet. The first time you would take damage before the start of your next turn, the kart takes it instead, and you take none.",
-    flavor: "I'm Using Tilt Controls!",
+    id: "lightsaber", name: "Lightsaber", rarity: "R", type: "Weapon", origin: "Star Wars",
+    image: "images/items/lightsaber.png", icon: "✨", duration: 1,
+    sound: "sounds/lightsaber.mp3", soundVolume: 0.15,
+    stats: { Damage: "1d8 radiant", Range: "Melee", Properties: "Finesse" },
+    description: "Your attacks with this weapon automatically hit. Roll anyway, since a 20 is still a critical hit.\nWhen you attack with this weapon, you can also choose one creature you can see within 30 feet of you and push it up to 30 feet away from you or pull it up to 30 feet toward you.",
+    flavor: "An elegant weapon for a more civilized age.",
   },
 
   // ---------------- SR ----------------
   // SR = the base weapon's dice + 1d4 bonus damage (a one-handed hit averages ~7 vs ~4.5 for C/R).
   // Versatile only changes the base die. Save DCs: 8 + PB + modifier.
   {
-    id: "falchion", name: "Falchion", rarity: "SR", type: "Weapon", origin: "Fire Emblem",
-    image: "images/items/falchion.png", icon: "⚔️", duration: 1,
-    stats: { Damage: "1d8 slashing + 1d4 radiant", Range: "Melee", Properties: "Versatile (1d10)" },
-    description: "Each time you make an attack with this weapon this turn, each of your allies can immediately make one attack as well. This doesn't require an action.",
-    flavor: "I am a prince before I am a son or brother.",
+    id: "fire-flower", name: "Fire Flower", rarity: "SR", type: "Wondrous Item", origin: "Super Mario",
+    image: "images/items/fire-flower.png", icon: "🔥", duration: 1,
+    sound: "sounds/fire-flower.mp3", soundVolume: 0.25,
+    stats: { Spell: "Fireball (3rd level)", Damage: "8d6 fire", Range: "150 ft", Area: "20-ft-radius sphere", Save: "Dexterity, DC 8 + PB + DEX" },
+    description: "As an action, you can cast Fireball at 3rd level from this item. You don't need a spell slot or components.",
+    flavor: "It looks like a flower with a face!",
   },
   {
     id: "hylian-shield", name: "Hylian Shield", rarity: "SR", type: "Shield", origin: "The Legend of Zelda",
     image: "images/items/hylian-shield.png", icon: "🛡️", duration: 1,
+    sound: "sounds/hylian-shield.mp3", soundVolume: 0.9,
     stats: { AC: "+2", Rebound: "Enemies within 10 ft" },
     description: "When a creature hits you with an attack while you're holding this shield, you take no damage from that attack. Instead, an enemy within 10 feet of you takes that damage.",
     flavor: "It's dangerous to go alone! Take this.",
   },
   {
-    id: "mjolnir", name: "Mjolnir", rarity: "SR", type: "Weapon", origin: "Thor",
-    image: "images/items/mjolnir.png", icon: "🔨", duration: 1,
-    stats: { Damage: "1d8 bludgeoning + 1d4 lightning", Range: "Melee / Thrown 20/60 ft", Properties: "Thrown, Versatile (1d10)" },
-    description: "When you hit a creature with this weapon, lightning arcs from it to each other enemy within 15 feet of it. Each of those enemies takes lightning damage equal to the damage you dealt to the target.",
-    flavor: "Whosoever holds this hammer, if he be worthy, shall possess the power of Thor.",
-  },
-  {
-    id: "golden-gun", name: "Golden Gun", rarity: "SR", type: "Weapon", origin: "James Bond",
-    image: "images/items/golden-gun.png", icon: "🔫", duration: 1,
-    stats: { Damage: "2d10 piercing", Range: "50/150 ft", Properties: "Ammunition, Loading" },
-    description: "When you make an attack with this weapon, flip a coin instead of rolling a d20.\nHeads: The attack is a critical hit, and you have immunity to all damage until the start of your next turn.\nTails: The attack misses, and until the start of your next turn, any attack roll that hits you is a critical hit.",
-    flavor: "The name's Bond. James Bond.",
-  },
-  {
-    id: "chain-hook", name: "Chain Hook", rarity: "SR", type: "Weapon", origin: "Overwatch",
-    image: "images/items/chain-hook.png", icon: "⛓️", duration: 1,
-    stats: { Damage: "1d8 + 1d4 piercing", Range: "Melee / Hook 50 ft", Save: "Constitution, DC 8 + PB + STR" },
-    description: "As an action, you can hurl the hook at a creature you can see within 50 feet of you and pull it into an unoccupied space within 5 feet of you. The creature must then succeed on a Constitution saving throw or have the Incapacitated condition until the start of your next turn.",
-    flavor: "Hiii.",
-  },
-  {
-    id: "fire-flower", name: "Fire Flower", rarity: "SR", type: "Wondrous Item", origin: "Super Mario",
-    image: "images/items/fire-flower.png", icon: "🔥", duration: 1,
-    stats: { Spell: "Fireball (3rd level)", Damage: "8d6 fire", Range: "150 ft", Area: "20-ft-radius sphere", Save: "Dexterity, DC 8 + PB + DEX" },
-    description: "As an action, you can cast Fireball at 3rd level from this item. You don't need a spell slot or components.",
-    flavor: "It looks like a flower with a face!",
+    id: "falchion", name: "Falchion", rarity: "SR", type: "Weapon", origin: "Fire Emblem",
+    image: "images/items/falchion.png", icon: "⚔️", duration: 1,
+    sound: "sounds/falchion/",
+    stats: { Damage: "1d8 slashing + 1d4 radiant", Range: "Melee", Properties: "Versatile (1d10)" },
+    description: "Each time you make an attack with this weapon this turn, each of your allies can immediately make one attack as well. This doesn't require an action.",
+    flavor: "I am a prince before I am a son or brother.",
   },
   // Stone Sword upgrades by swapping to the next tier's item (see `upgradesTo`).
   // `upgradeSound` plays when that tier upgrades (volume 0 to 1 in `upgradeSoundVolume`).
@@ -323,6 +321,7 @@ const STANDARD_ITEMS = [
   {
     id: "minecraft-sword", name: "Stone Sword", rarity: "SR", type: "Weapon", origin: "Minecraft",
     image: "images/items/stone-sword.png", icon: "🗡️", duration: "permanent", upgradesTo: "iron-sword",
+    sound: "sounds/stone-sword.mp3", soundVolume: 0.1,
     upgradeSound: "sounds/minecraft-upgrade.mp3", upgradeSoundVolume: 1,
     stats: { Damage: "1d8 slashing", Range: "Melee", Upgrades: "Iron 2d6 → Diamond 2d8" },
     description: "You keep this sword for the rest of the encounter.\nUpgrade. Instead of pulling on one of your turns, you can upgrade this sword to the next tier: Stone → Iron → Diamond.",
@@ -343,6 +342,38 @@ const STANDARD_ITEMS = [
     description: "You keep this sword for the rest of the encounter. This is the sword's final tier.",
     flavor: "First, we mine. Then, we craft. Let's Minecraft!",
   },
+  {
+    id: "chain-hook", name: "Chain Hook", rarity: "SR", type: "Weapon", origin: "Overwatch",
+    image: "images/items/chain-hook.png", icon: "⛓️", duration: 1,
+    sound: "sounds/chain-hook/",
+    stats: { Damage: "1d8 + 1d4 piercing", Range: "Melee / Hook 50 ft", Save: "Constitution, DC 8 + PB + STR" },
+    description: "As an action, you can hurl the hook at a creature you can see within 50 feet of you and pull it into an unoccupied space within 5 feet of you. The creature must then succeed on a Constitution saving throw or have the Incapacitated condition until the start of your next turn.",
+    flavor: "Hiii.",
+  },
+  {
+    id: "golden-gun", name: "Golden Gun", rarity: "SR", type: "Weapon", origin: "James Bond",
+    image: "images/items/golden-gun.png", icon: "🔫", duration: 1,
+    sound: "sounds/golden-gun.mp3", soundVolume: 0.075,
+    stats: { Damage: "2d10 piercing", Range: "50/150 ft", Properties: "Ammunition, Loading" },
+    description: "When you make an attack with this weapon, flip a coin instead of rolling a d20.\nHeads: The attack is a critical hit, and you have immunity to all damage until the start of your next turn.\nTails: The attack misses, and until the start of your next turn, any attack roll that hits you is a critical hit.",
+    flavor: "The name's Bond. James Bond.",
+  },
+  {
+    id: "mjolnir", name: "Mjolnir", rarity: "SR", type: "Weapon", origin: "Thor",
+    image: "images/items/mjolnir.png", icon: "🔨", duration: 1,
+    sound: "sounds/mjolnir.ogg", soundVolume: 0.71,
+    stats: { Damage: "1d8 bludgeoning + 1d4 lightning", Range: "Melee / Thrown 20/60 ft", Properties: "Thrown, Versatile (1d10)" },
+    description: "When you hit a creature with this weapon, lightning arcs from it to each other enemy within 15 feet of it. Each of those enemies takes lightning damage equal to the damage you dealt to the target.",
+    flavor: "Whosoever holds this hammer, if he be worthy, shall possess the power of Thor.",
+  },
+  {
+    id: "beggars-bazooka", name: "Beggar's Bazooka", rarity: "SR", type: "Weapon", origin: "Team Fortress 2",
+    image: "images/items/beggars-bazooka.png", icon: "🚀", duration: 1,
+    sound: "sounds/beggars-bazooka.mp3", soundVolume: 0.1,
+    stats: { Damage: "1d8 bludgeoning + 1d4 fire", Range: "100/300 ft", Properties: "Ammunition, Heavy, Two-handed", Overload: "On a 4: 10d6 fire, 20-ft radius", Save: "Dexterity, DC 8 + PB + DEX" },
+    description: "Load Up. When you take the Attack action with this weapon, roll a d4 first. On a 1, 2 or 3, you can make that many attacks with it this turn, instead of your usual number of attacks.\nOverload. On a 4, the launcher self-destructs and explodes as a 5th-level Fireball centered on you. Each other creature within 20 feet of you makes a Dexterity saving throw, taking 10d6 fire damage on a failed save, or half as much on a successful one.",
+    flavor: "What is better than killing a man with a highly explosive high velocity projectile launcher? Killing a man with a highly explosive high velocity projectile launcher that YOU HAVE MADE!",
+  },
 
   // ---------------- SSR ----------------
   // SSR = the base weapon's dice + 1d8 bonus damage (a one-handed hit averages ~9).
@@ -354,30 +385,6 @@ const STANDARD_ITEMS = [
     stats: { Damage: "2d6 force", Multiplier: "×1, then ×2, then ×4", Target: "One creature you can see" },
     description: "As an action, launch the shell at one creature you can see. It takes 2d6 force damage. At the start of each of your next two turns, roll the damage again against the same creature, doubling the previous turn's multiplier: double damage on your next turn, then quadruple damage on the turn after. This doesn't require an action.",
     flavor: "The last shall be first, and the first, last.",
-  },
-  {
-    id: "gungnir", name: "Gungnir", rarity: "SSR", type: "Weapon",
-    image: "images/items/gungnir.png", icon: "🔱", duration: 1,
-    sound: "sounds/gungnir.wav", soundVolume: 0.2,
-    stats: { Damage: "1d6 piercing + 1d8 force", Range: "Melee / Thrown 20/60 ft", Properties: "Thrown, Versatile (1d8)", Save: "Charisma, DC 8 + PB + STR" },
-    description: "When you hit a creature with this weapon, it becomes Marked for Death.\nMarked for Death: While the creature has fewer than half its hit points, attack rolls that you and your allies make against it automatically hit. The mark lasts until the creature uses its action to make a Charisma saving throw and succeeds.",
-    flavor: "Odin owns all of you!",
-  },
-  {
-    id: "portal-gun", name: "Portal Gun", rarity: "SSR", type: "Wondrous Item", origin: "Portal",
-    image: "images/items/portal-gun.png", icon: "🌀", duration: 1,
-    sound: "sounds/portal-gun.mp3", soundVolume: 0.75,
-    stats: { Use: "Action", Portals: "2, until combat ends" },
-    description: "As an action, choose two points you can see and open a portal at each. Until combat ends, when you or an ally enters one portal's space, that creature can immediately teleport to an unoccupied space next to the other portal. This doesn't cost any extra movement. The portals can't be dismissed.",
-    flavor: "Science isn't about why, it's about why not.",
-  },
-  {
-    id: "jarona", name: "Jarona", rarity: "SSR", type: "Weapon", origin: "Deltarune",
-    image: "images/items/jarona.png", icon: "🍊", duration: 1,
-    sound: "sounds/jarona.mp3", soundVolume: 0.52,
-    stats: { Damage: "1d10 + 1d8 radiant", Range: "80/320 ft" },
-    description: "Taunt. When you hit a creature with this weapon, it must target you with any attack or harmful spell it makes before the start of your next turn.\nJa-orange. When you score a critical hit with this weapon, it becomes a Ja-orange until the end of the turn. While it's a Ja-orange, creatures taunted by it also can't deal damage to you.",
-    flavor: "Here I come, San Frandisco!!",
   },
   {
     id: "super-star", name: "Super Star", rarity: "SSR", type: "Wondrous Item", origin: "Super Mario",
@@ -395,6 +402,31 @@ const STANDARD_ITEMS = [
     description: "Sword Beam. You can make a ranged attack with this weapon against any creature you can see, no matter how far away it is.\nSpin Attack. When you take the Attack action, you can give up two of your attacks to make one attack with this weapon against each creature of your choice that you can see, at any distance.",
     flavor: "A sword wields no strength unless the hand that holds it has courage.",
   },
+  {
+    id: "portal-gun", name: "Portal Gun", rarity: "SSR", type: "Wondrous Item", origin: "Portal",
+    image: "images/items/portal-gun.png", icon: "🌀", duration: 1,
+    sound: "sounds/portal-gun.mp3", soundVolume: 0.75,
+    stats: { Use: "Action", Portals: "2, until combat ends" },
+    description: "As an action, choose two points you can see and open a portal at each. Until combat ends, when you or an ally enters one portal's space, that creature can immediately teleport to an unoccupied space next to the other portal. This doesn't cost any extra movement. The portals can't be dismissed.",
+    flavor: "Science isn't about why, it's about why not.",
+  },
+  {
+    id: "jarona", name: "Jarona", rarity: "SSR", type: "Weapon", origin: "Deltarune",
+    image: "images/items/jarona.png", icon: "🍊", duration: 1,
+    sound: "sounds/jarona/", soundVolume: 2,
+    stats: { Damage: "1d10 + 1d8 radiant", Range: "80/320 ft" },
+    description: "Taunt. When you hit a creature with this weapon, it must target you with any attack or harmful spell it makes before the start of your next turn.\nJa-orange. When you score a critical hit with this weapon, it becomes a Ja-orange until the end of the turn. While it's a Ja-orange, creatures taunted by it also can't deal damage to you.",
+    flavor: "Here I come, San Frandisco!!",
+  },
+  {
+    id: "gungnir", name: "Gungnir", rarity: "SSR", type: "Weapon",
+    image: "images/items/gungnir.png", icon: "🔱", duration: 1,
+    sound: "sounds/gungnir.wav", soundVolume: 0.2,
+    stats: { Damage: "1d6 piercing + 1d8 force", Range: "Melee / Thrown 20/60 ft", Properties: "Thrown, Versatile (1d8)", Save: "Charisma, DC 8 + PB + STR" },
+    description: "When you hit a creature with this weapon, it becomes Marked for Death.\nMarked for Death: While the creature has fewer than half its hit points, attack rolls that you and your allies make against it automatically hit. The mark lasts until the creature uses its action to make a Charisma saving throw and succeeds.",
+    flavor: "Odin owns all of you!",
+  },
+
 ];
 
 /* ---------------------------------------------------------------------
@@ -410,6 +442,7 @@ const LIMITED_BANNERS = {
       {
         id: "freddys-mask", name: "Freddy's Mask", rarity: "R", type: "Wondrous Item", origin: "Five Nights at Freddy's",
         image: "images/items/freddys-mask.png", icon: "✨", duration: 1,
+        sound: "sounds/freddys-mask.mp3", soundVolume: 0.19,
         stats: { Use: "Action", Target: "You or a willing ally within 5 ft" },
         description: "As an action, you can put on this mask or place it on a willing ally. Until the start of your next turn, the wearer can't be targeted by attack rolls or spells.",
         flavor: "Perhaps some things are best left forgotten, for now.",
@@ -417,6 +450,7 @@ const LIMITED_BANNERS = {
       {
         id: "cupcake", name: "Mr. Cupcake", rarity: "SR", type: "Wondrous Item", origin: "Five Nights at Freddy's",
         image: "images/items/cupcake.png", icon: "🧁", duration: 1,
+        sound: "sounds/cupcake.mp3", soundVolume: 0.4,
         stats: { Use: "Action", Damage: "3d6 necrotic", Range: "30 ft" },
         description: "As an action, choose one creature you can see within 30 feet of you. It takes 3d6 necrotic damage, and its hit point maximum is reduced to equal its current hit points until it finishes a long rest. If the creature has another phase or form with its own hit points, the reduction doesn't carry over to it.",
         flavor: "Some call him Cupcake, but we prefer the more respectful Mr. Cupcake.",

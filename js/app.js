@@ -597,6 +597,23 @@
     overlayPortal.burst();
   }
 
+  // An item's sound: one file, or a folder ("sounds/name/") whose clips are listed in
+  // SOUND_FOLDERS (js/sounds.js). Folders play a random clip, never the same one twice in a row.
+  const lastClip = {};
+  function pickSound(item) {
+    if (!item.sound) return null;
+    const scale = item.soundVolume ?? 1;
+    if (!item.sound.endsWith("/")) return { src: item.sound, volume: scale };
+    const name = item.sound.replace(/\/+$/, "").split("/").pop();
+    const clips = (typeof SOUND_FOLDERS === "object" && SOUND_FOLDERS[name]) || [];
+    if (!clips.length) return null;
+    let i = Math.floor(Math.random() * clips.length);
+    if (clips.length > 1 && i === lastClip[item.id]) i = (i + 1 + Math.floor(Math.random() * (clips.length - 1))) % clips.length;
+    lastClip[item.id] = i;
+    const [file, volume = 1] = clips[i];
+    return { src: item.sound + encodeURIComponent(file), volume: volume * scale };
+  }
+
   // Charge → (rarity escalates) → weapon falls out of portal → impact → reveal.
   async function playReveal(item, meta) {
     const r = item.rarity;
@@ -647,7 +664,8 @@
     }
     const revealSound = () => {
       Sfx.impact(r);
-      if (item.sound) Sfx.file(item.sound, item.soundVolume ?? 1);
+      const clip = pickSound(item);
+      if (clip) Sfx.file(clip.src, clip.volume);
     };
     if (!skipping) {
       overlay.dataset.phase = "impact";

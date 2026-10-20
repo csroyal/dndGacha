@@ -14,6 +14,10 @@ Everything you'll want to change is in this one file.
   pull history refers to it.
 - **Images:** put files in `images/items/` and set `image: "images/items/your-file.png"`.
   Transparent PNGs look best. Leave `image: ""` to show the emoji `icon` instead.
+- **Sounds:** put a clip in `sounds/` and set `sound: "sounds/your-clip.mp3"`, with
+  `soundVolume` (0 to 1) to tune it. For a random clip on each pull, make a folder such as
+  `sounds/jarona/`, set `sound: "sounds/jarona/"`, and list its clips in `js/sounds.js`
+  (each with its own volume).
 - **Stats:** `stats` takes any label/value pairs, such as `{ Damage: "2d8", "Save DC": "15" }`.
 - **Text:** `description` is what the item does in play. `flavor` is optional italic lore shown
   below it. Use `\n` for a line break in either.
