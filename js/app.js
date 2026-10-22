@@ -986,6 +986,10 @@
         <li>Every <b>${ordinal(cfg.pityEvery)} pull</b> is a guaranteed <b>SR or SSR</b>.</li>
         ${(cfg.pityResetsOn || []).length ? `<li>Pulling ${cfg.pityResetsOn.map(r => `<b>${r}</b>`).join(" or ")} before pity resets the count.</li>` : ""}
         <li>Ending an encounter resets the pity count and the 50/50 guarantee.</li>
+        ${banner ? Object.entries(cfg.limitedRateUp || {})
+          .filter(([r]) => banner.items.some(i => i.rarity === r && i.pullable !== false))
+          .map(([r, share]) => `<li>Rate-up: <b>${Math.round(share * 100)}%</b> of ${RARITY_NAMES[r]} pulls give the limited ${r} item.</li>`)
+          .join("") : ""}
         <li>A pity pull has a <b>${Math.round(cfg.limitedChance * 100)}/${Math.round((1 - cfg.limitedChance) * 100)}</b> chance to be <b>limited</b> or <b>standard</b>.</li>
         <li>Lose the 50/50 (get standard) → your <b>next pity pull is guaranteed limited</b>, then it goes back to 50/50.</li>
         <li>Win the 50/50 → nothing carries over; the next pity is still 50/50.</li>

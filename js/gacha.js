@@ -91,8 +91,15 @@ const Gacha = (() => {
       }
       item = pickOne(limited ? lim(rarity) : std(rarity), rng);
     } else {
-      const pool = [...std(rarity).map(i => [i, false]), ...lim(rarity).map(i => [i, true])];
-      [item, limited] = pickOne(pool, rng);
+      // Rate-up: a fixed share of this rarity goes to the limited items; otherwise pick evenly.
+      const share = (cfg.limitedRateUp || {})[rarity];
+      if (share != null && std(rarity).length && lim(rarity).length) {
+        limited = rng() < share;
+        item = pickOne(limited ? lim(rarity) : std(rarity), rng);
+      } else {
+        const pool = [...std(rarity).map(i => [i, false]), ...lim(rarity).map(i => [i, true])];
+        [item, limited] = pickOne(pool, rng);
+      }
     }
 
     const resetPity = isPity || (cfg.pityResetsOn || []).includes(rarity);

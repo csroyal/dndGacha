@@ -78,6 +78,15 @@
     const fSR = Gacha.pull({ pity: due, guaranteed: true }, Math.random, "SR");
     check(fSR.rarity === "SR" && fSR.isPity && fSR.limited && fSR.state.pity === 0 && !fSR.state.guaranteed, "forcing SR on a pity pull still uses the guarantee");
 
+    // Limited rate-up outside the 50/50
+    for (const [r, share] of Object.entries(GACHA_CONFIG.limitedRateUp || {})) {
+      const bannerHas = Gacha.activeBanner() && Gacha.activeBanner().items.some(i => i.rarity === r && i.pullable !== false);
+      if (!bannerHas) continue;
+      let hits = 0, total = 40000;
+      for (let k = 0; k < total; k++) if (Gacha.pull({ pity: 0, guaranteed: false }, Math.random, r).limited) hits++;
+      check(near(hits / total, share, 0.01), `limited ${r} rate-up ≈ ${Math.round(share * 100)}% of ${r} pulls (got ${pct(hits, total)})`);
+    }
+
     // Admin-forced specific item
     const pullable = i => i.pullable !== false;
     const banner = Gacha.activeBanner();

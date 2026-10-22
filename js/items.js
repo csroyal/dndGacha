@@ -29,6 +29,11 @@ const GACHA_CONFIG = {
   //         the whole pool (standard + limited) and doesn't touch the guarantee.
   // true  = every SR/SSR pull uses the 50/50 + guarantee rules.
   fiftyFiftyOnEveryHighPull: false,
+
+  // Rate-up for the active rotation's limited items, outside of the 50/50.
+  // { R: 0.5 } = half of all Rare pulls give the limited R (split evenly if there are
+  // several). Rarities not listed pick evenly across standard + limited items.
+  limitedRateUp: { R: 0.33 },
 };
 
 /* ---------------------------------------------------------------------
@@ -442,7 +447,7 @@ const LIMITED_BANNERS = {
       {
         id: "freddys-mask", name: "Freddy's Mask", rarity: "R", type: "Wondrous Item", origin: "Five Nights at Freddy's",
         image: "images/items/freddys-mask.png", icon: "✨", duration: 1,
-        sound: "sounds/freddys-mask.mp3", soundVolume: 0.19,
+        sound: "sounds/freddys-mask/",
         stats: { Use: "Action", Target: "You or a willing ally" },
         description: "As an action, you can put on this mask or place it on a willing ally. Until the start of your next turn, the wearer can't be targeted by attack rolls or spells.",
         flavor: "Perhaps some things are best left forgotten, for now.",

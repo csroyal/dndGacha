@@ -142,4 +142,11 @@ const SOUND_FOLDERS = {
     ["Cassidy_-_Step_right_up.ogg", 0.62],
     ["Cassidy_-_That's_how_you_fan_the_hammer.ogg", 0.4],
   ],
+  "freddys-mask": [
+    ["FNAF Kids Cheering - Gaming Sound Effect (HD).mp3", 0.2],
+    ["FNAF Mascot Tune - Gaming Sound Effect (HD).mp3", 0.08],
+    ["FNAF freddy laugh - Sound Effect (HD).mp3", 0.33],
+    ["Five Nights at Freddy's (Ambience) - Sound Effect (HD).mp3", 0.34],
+    ["Freddy's Mask (original).mp3", 0.19],
+  ],
 };
