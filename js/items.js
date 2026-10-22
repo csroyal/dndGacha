@@ -226,7 +226,7 @@ const STANDARD_ITEMS = [
   {
     id: "peacekeeper", name: "Peacekeeper", rarity: "R", type: "Weapon", origin: "Overwatch",
     image: "images/items/peacekeeper.png", icon: "", duration: 1,
-    sound: "sounds/peacekeeper.ogg", soundVolume: 0.64,
+    sound: "sounds/peacekeeper/",
     stats: { Damage: "1d8 piercing", Range: "40/120 ft", Properties: "Ammunition, Reload (6 shots), Sap" },
     description: "Fan the Hammer. As an action, you can make six ranged attacks with this weapon against one or more targets. Don't add your ability modifier or proficiency bonus to these attack rolls, and don't add your ability modifier to their damage.",
     flavor: "It's high noon...",

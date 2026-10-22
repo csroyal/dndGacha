@@ -135,4 +135,11 @@ const SOUND_FOLDERS = {
     ["Flowery_voiceclip_your_dad's_my_best_friend.wav", 0.23],
     ["Flowery_voiceclip_your_dad.wav", 0.28],
   ],
+  "peacekeeper": [
+    ["Cassidy_-_Draw.ogg", 0.67],
+    ["Cassidy_-_It's_high_noon.ogg", 0.64],
+    ["Cassidy_-_Not_every_fight's_a_fair_one.ogg", 0.45],
+    ["Cassidy_-_Step_right_up.ogg", 0.62],
+    ["Cassidy_-_That's_how_you_fan_the_hammer.ogg", 0.4],
+  ],
 };
