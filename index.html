@@ -22,7 +22,10 @@
     </nav>
     <div class="top-actions">
       <button id="btnRules" class="btn">Rates &amp; pool</button>
-      <button id="btnMute" class="btn btn-icon" title="Sound"></button>
+      <div class="sound-ctl">
+        <button id="btnMute" class="btn btn-icon" title="Sound"></button>
+        <input id="volSlider" class="vol-slider" type="range" min="0" max="1" step="0.05" value="1" title="Volume" aria-label="Volume">
+      </div>
     </div>
   </header>
 

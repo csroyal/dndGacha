@@ -55,7 +55,7 @@
       s = r.state;
     }
 
-    lines.push(`Simulated ${N.toLocaleString()} pulls · active banner: ${ACTIVE_LIMITED_BANNER}\n`);
+    lines.push(`Simulated ${N.toLocaleString()} pulls · active banner: ${Gacha.activeKey()}\n`);
     lines.push(`Normal pulls (${normalN}):  C ${pct(normal.C, normalN)}  R ${pct(normal.R, normalN)}  SR ${pct(normal.SR, normalN)}  SSR ${pct(normal.SSR, normalN)}`);
     lines.push(`Pity pulls   (${pityN}):  SR ${pct(pity.SR, pityN)}  SSR ${pct(pity.SSR, pityN)}  limited ${pct(pityLimited, pityN)}`);
     lines.push(`50/50: won ${won}, lost ${lost}, guaranteed ${guar}  → win rate when not guaranteed ${pct(won, won + lost)}\n`);

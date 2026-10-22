@@ -21,7 +21,7 @@
      State
      --------------------------------------------------------------- */
   const freshState = () => ({
-    pity: 0, pityPulls: [], guaranteed: false, forceNext: null, forceItem: null, turn: 0, pullCount: 0, nextUid: 1,
+    pity: 0, pityPulls: [], guaranteed: false, rotation: "default", forceNext: null, forceItem: null, turn: 0, pullCount: 0, nextUid: 1,
     history: [], inventory: [], undo: null, muted: false,
   });
 
@@ -98,11 +98,16 @@
   // "Finesse, Versatile (1d8)" → each known term gets a hover definition from PROPERTY_GLOSSARY.
   const GLOSSARY = new Map(Object.entries(typeof PROPERTY_GLOSSARY === "object" ? PROPERTY_GLOSSARY : {})
     .map(([term, text]) => [term.toLowerCase(), [term, text]]));
-  // Wraps spell names from SPELL_GLOSSARY (case-sensitive, whole words) in already-escaped text.
+  // Spell names (SPELL_GLOSSARY) and conditions (CONDITION_GLOSSARY) become hoverable in
+  // already-escaped text. Case-sensitive, whole words.
   const SPELL_DATA = typeof SPELL_GLOSSARY === "object" ? SPELL_GLOSSARY : {};
-  const SPELLS = new Map(Object.keys(SPELL_DATA).map(name => [esc(name), name]));
-  const SPELL_RE = SPELLS.size
-    ? new RegExp(`(?<![\\w])(${[...SPELLS.keys()].sort((a, b) => b.length - a.length).map(n => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?![\\w])`, "g")
+  const CONDITION_DATA = typeof CONDITION_GLOSSARY === "object" ? CONDITION_GLOSSARY : {};
+  const TERMS = new Map([
+    ...Object.keys(CONDITION_DATA).map(name => [esc(name), { name, kind: "condition" }]),
+    ...Object.keys(SPELL_DATA).map(name => [esc(name), { name, kind: "spell" }]),
+  ]);
+  const TERM_RE = TERMS.size
+    ? new RegExp(`(?<![\\w])(${[...TERMS.keys()].sort((a, b) => b.length - a.length).map(n => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?![\\w])`, "g")
     : null;
   // "Fireball at 5th level" / "Fireball (5th level)" / "5th-level Fireball"
   const LEVEL_AFTER = /^\s*(?:\(|at\s+(?:the\s+)?)(\d)(?:st|nd|rd|th)[\s-]level/i;
@@ -122,14 +127,19 @@
     return [meta, body, !up && s.higher ? `At higher levels: ${s.higher}` : ""].filter(Boolean).join("\n");
   }
 
-  function linkSpells(html) {
-    if (!SPELL_RE) return html;
-    return html.replace(SPELL_RE, (match, _name, offset, str) => {
-      const name = SPELLS.get(match);
-      const after = str.slice(offset + match.length, offset + match.length + 30);
-      const before = str.slice(Math.max(0, offset - 20), offset);
-      const level = (after.match(LEVEL_AFTER) || before.match(LEVEL_BEFORE) || [])[1];
-      const text = spellText(name, level ? Number(level) : 0);
+  function linkTerms(html) {
+    if (!TERM_RE) return html;
+    return html.replace(TERM_RE, (match, _name, offset, str) => {
+      const { name, kind } = TERMS.get(match);
+      let text;
+      if (kind === "condition") {
+        text = `Condition\n${CONDITION_DATA[name]}`;
+      } else {
+        const after = str.slice(offset + match.length, offset + match.length + 30);
+        const before = str.slice(Math.max(0, offset - 20), offset);
+        const level = (after.match(LEVEL_AFTER) || before.match(LEVEL_BEFORE) || [])[1];
+        text = spellText(name, level ? Number(level) : 0);
+      }
       // &#10; keeps the definition's line breaks out of reach of the description's \n → <br> pass.
       return `<span class="prop" tabindex="0" data-tip-title="${esc(name)}" data-tip="${esc(text).replace(/\n/g, "&#10;")}">${match}</span>`;
     });
@@ -157,8 +167,8 @@
       ${tags ? block("tags", tags) : ""}
       ${block("item-name", esc(item.name), "h2")}
       ${origin ? block("item-origin", origin) : ""}
-      ${stats.length ? block("stats", stats.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${k.toLowerCase() === "properties" ? propertiesHTML(v) : linkSpells(esc(v))}</dd></div>`).join(""), "dl") : ""}
-      ${item.description ? block("desc", linkSpells(esc(item.description)).replace(/\n/g, "<br>"), "p") : ""}
+      ${stats.length ? block("stats", stats.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${k.toLowerCase() === "properties" ? propertiesHTML(v) : linkTerms(esc(v))}</dd></div>`).join(""), "dl") : ""}
+      ${item.description ? block("desc", linkTerms(esc(item.description)).replace(/\n/g, "<br>"), "p") : ""}
       ${item.flavor ? block("flavor", multiline(item.flavor), "p") : ""}
       ${block("duration", `Duration: <b>${durationText(item.duration)}</b>`)}`;
   }
@@ -418,13 +428,18 @@
      Sound — small WebAudio synth, no files needed
      --------------------------------------------------------------- */
   const Sfx = (() => {
-    let ctx = null, noiseBuf = null, currentFile = null;
+    let ctx = null, master = null, noiseBuf = null, currentFile = null, prepared = null;
+    const clamp01 = v => Math.min(1, Math.max(0, Number(v) || 0));
+    const masterVolume = () => clamp01(state.volume ?? 1);
     function ac() {
       if (state.muted) return null;
       if (!ctx) {
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return null;
         ctx = new AC();
+        master = ctx.createGain();
+        master.gain.value = masterVolume();
+        master.connect(ctx.destination);
       }
       if (ctx.state === "suspended") ctx.resume();
       return ctx;
@@ -434,7 +449,7 @@
       g.gain.setValueAtTime(0.0001, t0);
       g.gain.exponentialRampToValueAtTime(peak, t0 + attack);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-      g.connect(c.destination);
+      g.connect(master);
       return g;
     }
     // `lowpass` softens bright waveforms (e.g. sawtooth brass).
@@ -518,14 +533,32 @@
           tone({ f: f * 2.76, t, dur: 0.4, g: 0.007 });
         }
       },
+      // Starts downloading an item's sound early (at the start of the pull animation) so it's
+      // ready by the reveal, even on a slow connection.
+      prepare(src) {
+        if (state.muted || !src) return;
+        const audio = new Audio();
+        audio.preload = "auto";
+        audio.src = src;
+        audio.load();
+        prepared = { src, audio };
+      },
       // An item's own sound file, if it has one. Only one plays at a time.
       file(src, volume = 1) {
         this.stopFile();
-        if (state.muted) return;
-        const audio = new Audio(src);
-        audio.volume = Math.min(1, Math.max(0, Number(volume) || 0));
+        if (state.muted) { prepared = null; return; }
+        const audio = prepared && prepared.src === src ? prepared.audio : new Audio(src);
+        prepared = null;
+        audio.baseVolume = clamp01(volume);
+        audio.volume = clamp01(audio.baseVolume * masterVolume());
         audio.play().catch(() => {});
         currentFile = audio;
+      },
+      // Master volume (0 to 1) for everything: the built-in sounds and item sounds.
+      setVolume(v) {
+        state.volume = clamp01(v);
+        if (master) master.gain.value = state.volume;
+        if (currentFile && !currentFile.paused) currentFile.volume = clamp01(currentFile.baseVolume * state.volume);
       },
       // Fades out and stops the item sound (called when the result screen closes).
       stopFile() {
@@ -631,6 +664,10 @@
     $("#revealArt").innerHTML = artHTML(item);
     $("#revealInfo").innerHTML = infoHTML(item, meta);
     $("#revealInfo").scrollTop = 0;
+    // Pick the item's clip now and start loading it, so it's ready by the reveal.
+    // (The images load now too, since they were just added to the page.)
+    const clip = pickSound(item);
+    if (clip) Sfx.prepare(clip.src);
     fillParticles(r);
     overlayPortal.reset();
     overlayPortal.setTint("base", true);
@@ -664,7 +701,6 @@
     }
     const revealSound = () => {
       Sfx.impact(r);
-      const clip = pickSound(item);
       if (clip) Sfx.file(clip.src, clip.volume);
     };
     if (!skipping) {
@@ -969,10 +1005,10 @@
       </tr>`).join("");
 
     const catalog = Gacha.allItems()
-      .filter(({ item, bannerKey }) => item.pullable !== false && (bannerKey === null || bannerKey === ACTIVE_LIMITED_BANNER))
+      .filter(({ item, bannerKey }) => item.pullable !== false && (bannerKey === null || bannerKey === Gacha.activeKey()))
       .sort((a, b) => RANK[b.item.rarity] - RANK[a.item.rarity]);
 
-    const inactive = Object.entries(LIMITED_BANNERS).filter(([key]) => key !== ACTIVE_LIMITED_BANNER);
+    const inactive = Object.entries(LIMITED_BANNERS).filter(([key]) => key !== Gacha.activeKey());
 
     openModal(`
       <h2>Rates &amp; Rules</h2>
@@ -1041,7 +1077,7 @@
         .filter(({ item }) => item.rarity === r && item.pullable !== false)
         .map(({ item, bannerKey }) => {
           const banner = bannerKey && LIMITED_BANNERS[bannerKey];
-          const note = banner ? ` (limited: ${banner.name}${bannerKey === ACTIVE_LIMITED_BANNER ? "" : ", inactive"})` : "";
+          const note = banner ? ` (limited: ${banner.name}${bannerKey === Gacha.activeKey() ? "" : ", inactive"})` : "";
           return `<option value="${esc(item.id)}" ${item.id === state.forceItem ? "selected" : ""}>${esc(item.name)}${esc(note)}</option>`;
         }).join("");
       return options ? `<optgroup label="${r}">${options}</optgroup>` : "";
@@ -1070,7 +1106,22 @@
 
       <h3>Next pity pull</h3>
       <div class="filters">${chips("guar", [["0", "50/50"], ["1", "Limited guaranteed"]], state.guaranteed ? "1" : "0")}</div>
+
+      <h3>Limited rotation</h3>
+      <div class="filters">${chips("rot", [
+        ["default", `Default from items.js${LIMITED_BANNERS[ACTIVE_LIMITED_BANNER] ? ` (${esc(LIMITED_BANNERS[ACTIVE_LIMITED_BANNER].name)})` : " (none)"}`],
+        ...Object.entries(LIMITED_BANNERS).map(([key, b]) => [key, esc(b.name)]),
+        ["none", "No rotation"],
+      ], state.rotation || "default")}</div>
+      <p class="muted" style="font-size:.85rem;margin:.6rem 0 0">Saved in this browser until you change it.
+        The pool, featured items and limited odds update right away.</p>
     </div>`);
+  }
+
+  // Applies the admin panel's rotation choice ("default", "none", or a LIMITED_BANNERS key).
+  function syncRotation() {
+    const r = state.rotation || "default";
+    Gacha.setActiveKey(r === "default" ? undefined : r === "none" ? null : LIMITED_BANNERS[r] ? r : undefined);
   }
 
   $("#modalBody").addEventListener("click", e => {
@@ -1086,6 +1137,7 @@
       state.pity = n;
     }
     if (group === "guar") state.guaranteed = value === "1";
+    if (group === "rot") { state.rotation = value; renderAll(); }
     saveState();
     renderStatus();
     showAdmin();
@@ -1289,9 +1341,14 @@
       : `<path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>`;
     $("#btnMute").innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${speaker}${waves}</svg>`;
     $("#btnMute").title = state.muted ? "Sound off" : "Sound on";
+    const slider = $("#volSlider");
+    slider.value = state.volume ?? 1;
+    slider.classList.toggle("off", state.muted);
+    slider.title = `Volume ${Math.round((state.volume ?? 1) * 100)}%`;
   }
 
   function renderAll() {
+    syncRotation();
     renderBanner();
     renderStatus();
     renderInventory();
@@ -1315,6 +1372,13 @@
   $("#btnEnd").addEventListener("click", endEncounter);
   $("#btnUndo").addEventListener("click", undoLast);
   $("#btnRules").addEventListener("click", showRules);
+  // Volume slider: moving it while muted turns sound back on.
+  $("#volSlider").addEventListener("input", e => {
+    Sfx.setVolume(e.target.value);
+    if (state.muted && state.volume > 0) state.muted = false;
+    renderMute();
+  });
+  $("#volSlider").addEventListener("change", () => { saveState(); Sfx.click(); });
   $("#btnMute").addEventListener("click", () => {
     state.muted = !state.muted;
     saveState();
@@ -1324,10 +1388,18 @@
 
   document.addEventListener("keydown", e => {
     if (ovStage !== "closed") {
-      if ([" ", "Enter", "Escape"].includes(e.key)) { e.preventDefault(); overlayAdvance(); }
+      if ([" ", "Enter", "Escape"].includes(e.key)) { e.preventDefault(); if (!e.repeat) overlayAdvance(); }
       return;
     }
-    if (e.key === "Escape" && $("#modal").classList.contains("open")) closeModal();
+    const modalOpen = $("#modal").classList.contains("open");
+    if (e.key === "Escape" && modalOpen) closeModal();
+    // Space pulls from the summon screen. Held-down repeats are ignored, so holding Space
+    // can't chain pull → dismiss → pull. Typing in a form field is left alone.
+    if (e.key === " " && !modalOpen && $("#view-summon").classList.contains("active")
+        && !(e.target instanceof Element && e.target.closest("input, select, textarea"))) {
+      e.preventDefault();
+      if (!e.repeat) doPull(true);
+    }
   });
 
   const problems = Gacha.validate();

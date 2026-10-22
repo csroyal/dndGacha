@@ -78,6 +78,29 @@ const SPELL_GLOSSARY = {
 };
 
 /* ---------------------------------------------------------------------
+   CONDITION DEFINITIONS
+   Shown when you hover a condition in an item's description or stats.
+   Matching is case-sensitive, so capitalize them as D&D does
+   ("the Stunned condition").
+   --------------------------------------------------------------------- */
+const CONDITION_GLOSSARY = {
+  "Blinded": "You can't see and automatically fail any ability check that requires sight. Attack rolls against you have advantage, and your attack rolls have disadvantage.",
+  "Charmed": "You can't attack the charmer or target it with damaging abilities or magical effects. The charmer has advantage on any ability check to interact with you socially.",
+  "Deafened": "You can't hear and automatically fail any ability check that requires hearing.",
+  "Frightened": "You have disadvantage on ability checks and attack rolls while the source of your fear is within line of sight. You can't willingly move closer to the source of your fear.",
+  "Grappled": "Your speed is 0 and can't increase. You have disadvantage on attack rolls against any target other than the grappler. The grappler can drag or carry you, but it moves at half speed while doing so.",
+  "Incapacitated": "You can't take actions, bonus actions or reactions. Your concentration is broken, you can't speak, and you have disadvantage on initiative rolls.",
+  "Invisible": "You can't be seen without magic or a special sense. You have advantage on initiative rolls, attack rolls against you have disadvantage, and your attack rolls have advantage, unless a creature can somehow see you.",
+  "Paralyzed": "You have the Incapacitated condition, your speed is 0, and you automatically fail Strength and Dexterity saving throws. Attack rolls against you have advantage, and any hit from within 5 feet is a critical hit.",
+  "Petrified": "You turn to stone along with nonmagical objects you're wearing or carrying. You have the Incapacitated condition, your speed is 0, and attack rolls against you have advantage. You automatically fail Strength and Dexterity saving throws, have resistance to all damage, and have immunity to the Poisoned condition.",
+  "Poisoned": "You have disadvantage on attack rolls and ability checks.",
+  "Prone": "Your only movement option is to crawl, unless you stand up, which costs half your speed. You have disadvantage on attack rolls. Attack rolls against you have advantage if the attacker is within 5 feet of you, and disadvantage otherwise.",
+  "Restrained": "Your speed is 0 and can't increase. Attack rolls against you have advantage, and your attack rolls have disadvantage. You have disadvantage on Dexterity saving throws.",
+  "Stunned": "You have the Incapacitated condition and automatically fail Strength and Dexterity saving throws. Attack rolls against you have advantage.",
+  "Unconscious": "You have the Incapacitated and Prone conditions, drop whatever you're holding, and are unaware of your surroundings. Your speed is 0, you automatically fail Strength and Dexterity saving throws, and attack rolls against you have advantage. Any hit from within 5 feet is a critical hit.",
+};
+
+/* ---------------------------------------------------------------------
    ITEM FORMAT  (copy this template to add a new item)
 
    {
@@ -263,7 +286,7 @@ const STANDARD_ITEMS = [
   {
     id: "captain-shield", name: "Captain's Shield", rarity: "R", type: "Shield", origin: "Captain America",
     image: "images/items/captain-shield.png", icon: "🛡️", duration: 1,
-    sound: "sounds/captain-shield.ogg", soundVolume: 0.6,
+    sound: "sounds/captain-shield.mp3", soundVolume: 0.6,
     stats: { AC: "+2", "Unarmed Strike": "1d4 bludgeoning", Save: "Constitution, DC 8 + PB + STR" },
     description: "Your unarmed strikes deal 1d4 bludgeoning damage. When you hit a creature with an unarmed strike, it must succeed on a Constitution saving throw or have the Stunned condition until the start of your next turn.",
     flavor: "I can do this all day.",
@@ -279,7 +302,7 @@ const STANDARD_ITEMS = [
   {
     id: "hulk-fist", name: "Hulk Fist", rarity: "R", type: "Weapon", origin: "The Incredible Hulk",
     image: "images/items/hulk-fist.png", icon: "👊", duration: 1,
-    sound: "sounds/hulk-fist.ogg", soundVolume: 0.38,
+    sound: "sounds/hulk-fist.mp3", soundVolume: 0.38,
     stats: { Damage: "2d6 bludgeoning", Range: "Melee", Area: "20-ft radius (slam)", Save: "Dexterity, DC 8 + PB + STR" },
     description: "Slam. As an action, you can smash the ground. Each creature of your choice within 20 feet of you makes a Dexterity saving throw, taking 2d6 + your Strength modifier bludgeoning damage on a failed save, or half as much on a successful one.",
     flavor: "HULK SMASH!!!",
@@ -366,7 +389,7 @@ const STANDARD_ITEMS = [
   {
     id: "mjolnir", name: "Mjolnir", rarity: "SR", type: "Weapon", origin: "Thor",
     image: "images/items/mjolnir.png", icon: "🔨", duration: 1,
-    sound: "sounds/mjolnir.ogg", soundVolume: 0.71,
+    sound: "sounds/mjolnir.mp3", soundVolume: 0.71,
     stats: { Damage: "1d8 bludgeoning + 1d4 lightning", Range: "Melee / Thrown 20/60 ft", Properties: "Thrown, Versatile (1d10)" },
     description: "When you hit a creature with this weapon, lightning arcs from it to each other enemy within 15 feet of it. Each of those enemies takes lightning damage equal to the damage you dealt to the target.",
     flavor: "Whosoever holds this hammer, if he be worthy, shall possess the power of Thor.",
@@ -426,8 +449,8 @@ const STANDARD_ITEMS = [
   {
     id: "gungnir", name: "Gungnir", rarity: "SSR", type: "Weapon",
     image: "images/items/gungnir.png", icon: "🔱", duration: 1,
-    sound: "sounds/gungnir.wav", soundVolume: 0.2,
-    stats: { Damage: "2d8 force", Range: "Melee / Thrown 20/60 ft", Properties: "Thrown, Versatile (1d8)", Save: "Charisma, DC 8 + PB + STR" },
+    sound: "sounds/gungnir.mp3", soundVolume: 0.2,
+    stats: { Damage: "2d8 force", Range: "Melee / Thrown 20/60 ft", Properties: "Thrown, Versatile (2d10)", Save: "Charisma, DC 8 + PB + STR" },
     description: "When you hit a creature with this weapon, it becomes Marked for Death.\nMarked for Death: While the creature has fewer than half its hit points, attack rolls that you and your allies make against it automatically hit. The mark lasts until the creature uses its action to make a Charisma saving throw and succeeds.",
     flavor: "Odin owns all of you!",
   },

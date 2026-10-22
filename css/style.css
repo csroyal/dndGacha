@@ -98,6 +98,9 @@ h2 { font-family: var(--font-display); font-weight: 700; }
 .btn:hover { background: rgba(255, 255, 255, .09); }
 .btn-icon { width: 36px; height: 34px; padding: 0; display: grid; place-items: center; }
 .btn-icon svg { width: 18px; height: 18px; }
+.sound-ctl { display: flex; align-items: center; gap: .45rem; }
+.vol-slider { width: 84px; accent-color: var(--amber); cursor: pointer; }
+.vol-slider.off { opacity: .4; }
 
 @media (max-width: 720px) {
   .topbar { flex-wrap: wrap; height: auto; padding-top: .6rem; gap: .5rem 1rem; }

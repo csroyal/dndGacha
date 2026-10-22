@@ -7,11 +7,19 @@ const Gacha = (() => {
   const RARITIES = ["C", "R", "SR", "SSR"];
   const HIGH = new Set(["SR", "SSR"]);
 
+  // The admin panel can override ACTIVE_LIMITED_BANNER: undefined = use items.js,
+  // null = no rotation, or a key in LIMITED_BANNERS.
+  let override;
+  function setActiveKey(key) { override = key; }
+
+  function activeKey() {
+    const key = override !== undefined ? override : ACTIVE_LIMITED_BANNER;
+    return key && LIMITED_BANNERS[key] ? key : null;
+  }
+
   function activeBanner() {
-    if (!ACTIVE_LIMITED_BANNER) return null;
-    const banner = LIMITED_BANNERS[ACTIVE_LIMITED_BANNER];
-    if (!banner) console.warn(`ACTIVE_LIMITED_BANNER "${ACTIVE_LIMITED_BANNER}" is not a key in LIMITED_BANNERS.`);
-    return banner || null;
+    const key = activeKey();
+    return key ? LIMITED_BANNERS[key] : null;
   }
 
   function weighted(weights, rng) {
@@ -106,7 +114,7 @@ const Gacha = (() => {
     const nextPity = resetPity ? 0 : pityDue ? state.pity : state.pity + 1;
     return {
       item, rarity, limited, isPity, outcome,
-      bannerKey: forcedEntry ? forcedEntry.bannerKey : limited ? ACTIVE_LIMITED_BANNER : null,
+      bannerKey: forcedEntry ? forcedEntry.bannerKey : limited ? activeKey() : null,
       state: { pity: nextPity, guaranteed },
     };
   }
@@ -147,5 +155,5 @@ const Gacha = (() => {
     return problems;
   }
 
-  return { RARITIES, activeBanner, pull, allItems, findItem, validate };
+  return { RARITIES, activeBanner, activeKey, setActiveKey, pull, allItems, findItem, validate };
 })();
